@@ -31,8 +31,6 @@ public class HttpListener implements IProxyListener {
 			URL url = analyzedReq.getUrl();
 			if (isReq) {
 				handleRequest(messageInfo, url, message);
-			} else if (isMockedResponse(url)) {
-				handleResponse(messageInfo, url);
 			}
 		}
 	}
@@ -61,7 +59,7 @@ public class HttpListener implements IProxyListener {
 			if (!matchEntry.handleRequest(messageInfo)) {
 				IHttpService service = helpers.buildHttpService("127.0.0.1", port, false);
 				byte[] localReq = helpers.buildHttpMessage(
-						Collections.singletonList("POST /?" + matchEntry.getId() + " HTTP/1.0"), messageInfo.getRequest());
+						Collections.singletonList("POST /?id=" + matchEntry.getId() + " HTTP/1.0"), messageInfo.getRequest());
 				messageInfo.setRequest(localReq);
 				messageInfo.setHttpService(service);
 			}
