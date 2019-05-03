@@ -4,6 +4,7 @@ import burp.*;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Files;
@@ -172,16 +173,26 @@ public enum MockEntryTypeEnum {
             if (parent != null) pb.directory(parent.toFile());
             pb.redirectInput(ProcessBuilder.Redirect.PIPE);
             pb.redirectOutput(ProcessBuilder.Redirect.PIPE);
+            pb.redirectError(ProcessBuilder.Redirect.PIPE);
             if (environment != null) pb.environment().putAll(environment);
 
             Process p = pb.start();
             if (input != null) p.getOutputStream().write(input);
             p.getOutputStream().close();
 
-            ByteArrayOutputStream stdout = new ByteArrayOutputStream();
+            ByteArrayOutputStream stdout = new ByteArrayOutputStream(), stderr = new ByteArrayOutputStream();
             int length;
             byte[] buffer = new byte[1024];
             while ((length = p.getInputStream().read(buffer)) != -1) stdout.write(buffer, 0, length);
+            while ((length = p.getErrorStream().read(buffer)) != -1) stderr.write(buffer, 0, length);
+            if (stderr.size() > 0) {
+                PrintWriter errWriter = BurpExtender.getLogger().getStderr();
+                errWriter.print("Error from process \"");
+                errWriter.print(commandWithArgs.get(0));
+                errWriter.println("\":");
+                errWriter.println(helpers.bytesToString(stderr.toByteArray()));
+                errWriter.println();
+            }
 
             return stdout.toByteArray();
         } catch (IOException e) {
