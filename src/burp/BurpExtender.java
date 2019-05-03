@@ -9,6 +9,7 @@ import net.logicaltrust.persistent.SettingsSaver;
 import net.logicaltrust.server.MockLocalServer;
 import net.logicaltrust.tab.MockTabPanel;
 
+import java.io.PrintStream;
 import java.io.PrintWriter;
 
 public class BurpExtender implements IBurpExtender {
@@ -27,6 +28,9 @@ public class BurpExtender implements IBurpExtender {
     @Override
     public void registerExtenderCallbacks(IBurpExtenderCallbacks callbacks) {
         BurpExtender.callbacks = callbacks;
+        System.setErr(new PrintStream(callbacks.getStderr()));
+        System.setOut(new PrintStream(callbacks.getStdout()));
+
         PrintWriter stderr = new PrintWriter(callbacks.getStderr(), true);
         BurpExtender.logger = new SimpleLogger(new PrintWriter(callbacks.getStdout(), true), stderr);
         SettingsSaver settingSaver = new SettingsSaver();
